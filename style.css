@@ -1,0 +1,432 @@
+:root {
+    --bg-color: #0a0b10;
+    --card-bg: #14161f;
+    --text-primary: #ffffff;
+    --text-secondary: #94a3b8;
+    --accent-primary: #3b82f6;
+    /* Blue */
+    --accent-secondary: #10b981;
+    /* Green */
+    --accent-danger: #ef4444;
+    /* Red */
+    --accent-glow: rgba(59, 130, 246, 0.5);
+    --font-main: 'Inter', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-primary);
+    font-family: var(--font-main);
+    line-height: 1.6;
+    overflow-x: hidden;
+}
+
+.app-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 2rem;
+    position: relative;
+}
+
+/* Header */
+header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+h1 {
+    font-size: 3rem;
+    font-weight: 700;
+    letter-spacing: -0.05em;
+    margin-bottom: 0.5rem;
+}
+
+.highlight {
+    color: var(--accent-primary);
+    text-shadow: 0 0 20px var(--accent-glow);
+}
+
+.subtitle {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+}
+
+/* Overlay */
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(10, 11, 16, 0.95);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    backdrop-filter: blur(10px);
+    transition: opacity 0.5s ease;
+}
+
+.overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.overlay-content {
+    text-align: center;
+    background: var(--card-bg);
+    padding: 3rem;
+    border-radius: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+}
+
+.primary-btn {
+    background: var(--accent-primary);
+    color: white;
+    border: none;
+    padding: 1rem 2rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    margin-top: 1.5rem;
+    transition: all 0.2s ease;
+}
+
+.primary-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 20px var(--accent-glow);
+}
+
+/* Sections */
+.lab-section {
+    background: var(--card-bg);
+    border-radius: 1.5rem;
+    padding: 2rem;
+    margin-bottom: 3rem;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.section-header {
+    margin-bottom: 2rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 1rem;
+}
+
+.section-header h2 {
+    font-size: 1.8rem;
+    margin-bottom: 0.5rem;
+}
+
+.section-header p {
+    color: var(--text-secondary);
+}
+
+/* Controls */
+.control-panel {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    gap: 2rem;
+    flex-wrap: wrap;
+}
+
+.control-panel.centered {
+    justify-content: center;
+}
+
+.toggle-group {
+    display: flex;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 0.25rem;
+    border-radius: 0.5rem;
+}
+
+.toggle-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    padding: 0.75rem 1.5rem;
+}
+
+input[type="range"] {
+    width: 150px;
+    accent-color: var(--accent-primary);
+}
+
+/* Visualizer */
+.visualizer-container {
+    background: black;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    position: relative;
+}
+
+canvas {
+    width: 100%;
+    height: 200px;
+    display: block;
+}
+
+.labels {
+    display: flex;
+    justify-content: space-between;
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    margin-top: 0.5rem;
+    font-family: var(--font-mono);
+}
+
+/* Info Box */
+.info-box {
+    background: rgba(59, 130, 246, 0.1);
+    border-left: 4px solid var(--accent-primary);
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+}
+
+.info-box h3 {
+    color: var(--accent-primary);
+    margin-bottom: 0.5rem;
+}
+
+/* ANC Specifics */
+.anc-controls {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.card {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 1.5rem;
+    border-radius: 1rem;
+    text-align: center;
+    min-width: 150px;
+}
+
+.wave-icon {
+    font-size: 2rem;
+    margin: 1rem 0;
+}
+
+.wave-icon.inverted {
+    transform: scaleY(-1);
+    color: var(--accent-danger);
+}
+
+.plus-sign,
+.equals-sign {
+    font-size: 2rem;
+    font-weight: bold;
+    color: var(--text-secondary);
+}
+
+.power-btn {
+    background: #333;
+    color: white;
+    border: none;
+    padding: 1rem 2rem;
+    font-size: 1.2rem;
+    border-radius: 2rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.power-btn .icon {
+    font-size: 1.4rem;
+}
+
+.power-btn.active {
+    background: rgba(16, 185, 129, 0.2);
+    color: var(--accent-secondary);
+    border-color: var(--accent-secondary);
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+}
+
+.status-indicator {
+    font-weight: bold;
+    color: var(--accent-danger);
+    font-family: var(--font-mono);
+}
+
+.status-indicator.silence {
+    color: var(--accent-secondary);
+}
+
+/* Animations */
+@keyframes wave {
+    0% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-5px);
+    }
+
+    100% {
+        transform: translateY(0);
+    }
+}
+
+@keyframes wave-inverted {
+    0% {
+        transform: scaleY(-1) translateY(0);
+    }
+
+    50% {
+        transform: scaleY(-1) translateY(-5px);
+    }
+
+    100% {
+        transform: scaleY(-1) translateY(0);
+    }
+}
+
+.wave-icon.animating {
+    animation: wave 1s infinite ease-in-out;
+}
+
+.wave-icon.inverted.animating {
+    animation: wave-inverted 1s infinite ease-in-out;
+}
+
+.headphone-icon {
+    font-size: 3rem;
+    margin-top: -1rem;
+    margin-bottom: 0.5rem;
+    display: none;
+    /* Hidden by default, shown when ANC active maybe? or just always shown */
+    display: block;
+}
+
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    filter: grayscale(1);
+}
+
+/* Phase Selector */
+.control-panel.column {
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.phase-selector {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+}
+
+.radio-group {
+    display: flex;
+    gap: 1.5rem;
+}
+
+.radio-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    color: var(--text-secondary);
+    transition: color 0.2s;
+}
+
+.radio-label:hover {
+    color: white;
+}
+
+.radio-label input[type="radio"] {
+    accent-color: var(--accent-primary);
+    width: 1.2rem;
+    height: 1.2rem;
+}
+
+.button-group {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+/* Visualizer Legend */
+.legend {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.dot.green {
+    background-color: rgb(0, 255, 0);
+    box-shadow: 0 0 5px rgb(0, 255, 0);
+}
+
+.dot.red {
+    background-color: rgb(255, 50, 50);
+    box-shadow: 0 0 5px rgb(255, 50, 50);
+}
+
+.dot.blue {
+    background-color: rgb(50, 150, 255);
+    box-shadow: 0 0 5px rgb(50, 150, 255);
+}
+
+/* Footer */
+footer {
+    text-align: center;
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.developer {
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.05);
+    padding: 1rem;
+    border-radius: 0.5rem;
+    display: inline-block;
+}
+
+.developer strong {
+    color: var(--accent-primary);
+}

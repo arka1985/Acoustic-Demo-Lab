@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acoustic Demo Lab</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@400;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+</head>
+
+<body>
+    <div class="overlay" id="start-overlay">
+        <div class="overlay-content">
+            <h1>Acoustic Demo Lab</h1>
+            <p class="subtitle">Experience Sound Weighting & Active Noise Cancellation</p>
+            <button class="primary-btn" id="start-btn">Enter Lab</button>
+        </div>
+    </div>
+
+    <div class="app-container">
+        <header>
+            <h1>Acoustic Demo <span class="highlight">Lab</span></h1>
+            <p class="subtitle">Interactive Sound Engineering Concepts</p>
+        </header>
+
+        <main>
+            <!-- Section 1: Sound Weighting -->
+            <section class="lab-section">
+                <div class="section-header">
+                    <h2>1. Sound Weighting Demo</h2>
+                    <p>Compare how different weighting filters affect audio perception.</p>
+                </div>
+
+                <div class="control-panel">
+                    <!-- Source Selection -->
+                    <div class="control-group">
+                        <label>Audio Source</label>
+                        <div class="toggle-group source-select">
+                            <button class="toggle-btn active" data-source="noise">Pink Noise</button>
+                            <button class="toggle-btn" data-source="tone">Sine Tone</button>
+                        </div>
+                    </div>
+
+                    <!-- Frequency Slider (Hidden by default) -->
+                    <div class="control-group hidden" id="freq-control-group">
+                        <label>Frequency: <span id="freq-display" class="value-display">1000 Hz</span></label>
+                        <input type="range" id="tone-freq" min="20" max="20000" value="1000" step="10">
+                    </div>
+
+                    <!-- Weighting Selection -->
+                    <div class="control-group">
+                        <label>Weighting Filter</label>
+                        <div class="toggle-group weighting-select">
+                            <button class="toggle-btn active" data-weighting="flat">Flat (Z)</button>
+                            <button class="toggle-btn" data-weighting="a">A-Weighting</button>
+                            <button class="toggle-btn" data-weighting="b">B-Weighting</button>
+                            <button class="toggle-btn" data-weighting="c">C-Weighting</button>
+                        </div>
+                    </div>
+
+                    <!-- Play/Stop & Volume -->
+                    <div class="control-group">
+                        <button class="power-btn small" id="weighting-play-btn">
+                            <span class="icon">▶</span> Play
+                        </button>
+                    </div>
+
+                    <div class="control-group">
+                        <label>Volume</label>
+                        <input type="range" id="weighting-volume" min="0" max="1" step="0.01" value="0.5">
+                    </div>
+                </div>
+
+                <div class="visualizer-container">
+                    <canvas id="weighting-analyzer"></canvas>
+                    <div class="labels">
+                        <span>20Hz</span>
+                        <span>1kHz</span>
+                        <span>20kHz</span>
+                    </div>
+                </div>
+
+                <div class="info-box" id="weighting-info">
+                    <h3>Flat Response (Z-Weighting)</h3>
+                    <p>All frequencies are played at equal amplitude. This is the raw, unweighted sound.</p>
+                </div>
+            </section>
+
+            <!-- Section 2: Noise Cancellation -->
+            <section class="lab-section">
+                <div class="section-header">
+                    <h2>2. Active Noise Cancellation (ANC)</h2>
+                    <p>Visualize how anti-noise cancels out unwanted sound through phase inversion.</p>
+                </div>
+
+                <div class="anc-controls">
+                    <div class="card noise-source">
+                        <h3>Noise Source</h3>
+                        <div class="wave-icon">〰️</div>
+                        <p>Engine Noise</p>
+                    </div>
+
+                    <div class="plus-sign">+</div>
+
+                    <div class="card anti-noise">
+                        <h3>Anti-Noise</h3>
+                        <div class="wave-icon inverted">〰️</div>
+                        <p id="anti-noise-desc">Inverted Phase (180°)</p>
+                    </div>
+
+                    <div class="equals-sign">=</div>
+
+                    <div class="card result">
+                        <h3>Result</h3>
+                        <div class="status-indicator" id="anc-status">OFF</div>
+                        <div class="headphone-icon">🎧</div>
+                    </div>
+                </div>
+
+                <div class="control-panel centered column">
+                    <!-- Phase Selector -->
+                    <div class="phase-selector">
+                        <span class="label">Cancellation Phase:</span>
+                        <div class="radio-group">
+                            <label class="radio-label">
+                                <input type="radio" name="phase" value="180" checked>
+                                Perfect (180°)
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="phase" value="160">
+                                Imperfect (160°)
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="button-group">
+                        <button class="power-btn" id="start-engine-btn">
+                            <span class="icon">🔊</span> Start Engine
+                        </button>
+                        <button class="power-btn" id="anc-toggle" disabled>
+                            <span class="icon">⏻</span> Activate ANC
+                        </button>
+                    </div>
+                </div>
+
+                <div class="visualizer-container">
+                    <canvas id="anc-scope"></canvas>
+                    <div class="legend">
+                        <div class="legend-item"><span class="dot green"></span> Source</div>
+                        <div class="legend-item"><span class="dot red"></span> Anti-Noise</div>
+                        <div class="legend-item"><span class="dot blue"></span> Result</div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <div class="developer">
+                <p>Developed by: <strong>Dr. Arkaprabha Sau, MBBS, MD (Gold Medalist), PhD (Computer Science &
+                        Engineering), DPH, Dip. Geriatric Medicine, Certificate in Diabetes Management</strong></p>
+            </div>
+            <p>Developed for Educational Purposes</p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
