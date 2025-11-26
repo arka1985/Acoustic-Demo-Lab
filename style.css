@@ -156,11 +156,16 @@ h1 {
     border: none;
     color: var(--text-secondary);
     padding: 0.75rem 1.5rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-radius: 0.5rem;
 }
 
-input[type="range"] {
-    width: 150px;
-    accent-color: var(--accent-primary);
+.toggle-btn.active {
+    background: rgba(59, 130, 246, 0.2);
+    color: var(--accent-primary);
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.2);
+    font-weight: 600;
 }
 
 /* Visualizer */
@@ -422,6 +427,201 @@ footer {
     font-size: 0.9rem;
     color: var(--text-primary);
     background: rgba(255, 255, 255, 0.05);
+}
+
+.plus-sign,
+.equals-sign {
+    font-size: 2rem;
+    font-weight: bold;
+    color: var(--text-secondary);
+}
+
+.power-btn {
+    background: #333;
+    color: white;
+    border: none;
+    padding: 1rem 2rem;
+    font-size: 1.2rem;
+    border-radius: 2rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.power-btn .icon {
+    font-size: 1.4rem;
+}
+
+.power-btn.active {
+    background: rgba(16, 185, 129, 0.2);
+    color: var(--accent-secondary);
+    border-color: var(--accent-secondary);
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+}
+
+.status-indicator {
+    font-weight: bold;
+    color: var(--accent-danger);
+    font-family: var(--font-mono);
+}
+
+.status-indicator.silence {
+    color: var(--accent-secondary);
+}
+
+/* Animations */
+@keyframes wave {
+    0% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-5px);
+    }
+
+    100% {
+        transform: translateY(0);
+    }
+}
+
+@keyframes wave-inverted {
+    0% {
+        transform: scaleY(-1) translateY(0);
+    }
+
+    50% {
+        transform: scaleY(-1) translateY(-5px);
+    }
+
+    100% {
+        transform: scaleY(-1) translateY(0);
+    }
+}
+
+.wave-icon.animating {
+    animation: wave 1s infinite ease-in-out;
+}
+
+.wave-icon.inverted.animating {
+    animation: wave-inverted 1s infinite ease-in-out;
+}
+
+.headphone-icon {
+    font-size: 3rem;
+    margin-top: -1rem;
+    margin-bottom: 0.5rem;
+    display: none;
+    /* Hidden by default, shown when ANC active maybe? or just always shown */
+    display: block;
+}
+
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    filter: grayscale(1);
+}
+
+/* Phase Selector */
+.control-panel.column {
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.phase-selector {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+}
+
+.radio-group {
+    display: flex;
+    gap: 1.5rem;
+}
+
+.radio-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    color: var(--text-secondary);
+    transition: color 0.2s;
+}
+
+.radio-label:hover {
+    color: white;
+}
+
+.radio-label input[type="radio"] {
+    accent-color: var(--accent-primary);
+    width: 1.2rem;
+    height: 1.2rem;
+}
+
+.button-group {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+/* Visualizer Legend */
+.legend {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.dot.green {
+    background-color: rgb(0, 255, 0);
+    box-shadow: 0 0 5px rgb(0, 255, 0);
+}
+
+.dot.red {
+    background-color: rgb(255, 50, 50);
+    box-shadow: 0 0 5px rgb(255, 50, 50);
+}
+
+.dot.blue {
+    background-color: rgb(50, 150, 255);
+    box-shadow: 0 0 5px rgb(50, 150, 255);
+}
+
+/* Footer */
+footer {
+    text-align: center;
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.developer {
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.05);
     padding: 1rem;
     border-radius: 0.5rem;
     display: inline-block;
@@ -429,4 +629,103 @@ footer {
 
 .developer strong {
     color: var(--accent-primary);
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .app-container {
+        padding: 1rem;
+    }
+
+    h1 {
+        font-size: 2.5rem;
+    }
+}
+
+@media (max-width: 768px) {
+    h1 {
+        font-size: 2rem;
+    }
+
+    .subtitle {
+        font-size: 1rem;
+    }
+
+    .lab-section {
+        padding: 1.5rem;
+    }
+
+    .control-panel {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1.5rem;
+    }
+
+    .control-group {
+        width: 100%;
+    }
+
+    .toggle-group {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .toggle-btn {
+        flex: 1;
+        padding: 0.75rem 0.5rem;
+        font-size: 0.9rem;
+    }
+
+    /* ANC Controls Mobile */
+    .anc-controls {
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .plus-sign,
+    .equals-sign {
+        transform: rotate(90deg);
+        margin: 0.5rem 0;
+    }
+
+    .card {
+        width: 100%;
+        min-width: auto;
+    }
+
+    /* Phase Selector Mobile */
+    .phase-selector {
+        flex-direction: column;
+        align-items: flex-start;
+        width: 100%;
+    }
+
+    .radio-group {
+        flex-direction: column;
+        gap: 0.75rem;
+        width: 100%;
+    }
+
+    .radio-label {
+        width: 100%;
+        padding: 0.5rem;
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 0.25rem;
+    }
+
+    .button-group {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .power-btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    /* Overlay Mobile */
+    .overlay-content {
+        padding: 2rem;
+        width: 90%;
+    }
 }
