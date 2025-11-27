@@ -132,16 +132,17 @@ h1 {
 
 /* Controls */
 .control-panel {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 2rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 2rem;
-    flex-wrap: wrap;
+    align-items: start;
+    margin-bottom: 2rem;
 }
 
-.control-panel.centered {
-    justify-content: center;
+.control-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
 }
 
 .toggle-group {
@@ -149,16 +150,23 @@ h1 {
     background: rgba(0, 0, 0, 0.3);
     padding: 0.25rem;
     border-radius: 0.5rem;
+    flex-wrap: wrap;
+    /* Fix for overflow */
+    gap: 0.25rem;
 }
 
 .toggle-btn {
     background: transparent;
     border: none;
     color: var(--text-secondary);
-    padding: 0.75rem 1.5rem;
+    padding: 0.75rem 1rem;
     cursor: pointer;
     transition: all 0.2s ease;
     border-radius: 0.5rem;
+    flex: 1;
+    white-space: nowrap;
+    min-width: 80px;
+    text-align: center;
 }
 
 .toggle-btn.active {
@@ -166,6 +174,99 @@ h1 {
     color: var(--accent-primary);
     box-shadow: 0 0 10px rgba(59, 130, 246, 0.2);
     font-weight: 600;
+}
+
+/* Weighting Filter Specifics - Stacked with Glow */
+.weighting-select {
+    flex-direction: column;
+    gap: 0.75rem;
+    background: transparent;
+    /* Remove container bg for cleaner look */
+    padding: 0;
+}
+
+.weighting-select .toggle-btn {
+    width: 100%;
+    text-align: left;
+    padding: 1rem 1.5rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 0.75rem;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    flex: none;
+}
+
+.weighting-select .toggle-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    transform: translateX(5px);
+    box-shadow: 0 0 15px rgba(59, 130, 246, 0.1);
+}
+
+.weighting-select .toggle-btn.active {
+    background: rgba(59, 130, 246, 0.15);
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.3), inset 0 0 10px rgba(59, 130, 246, 0.1);
+}
+
+.weighting-select .toggle-btn.active::before {
+    content: '●';
+    color: var(--accent-primary);
+    position: absolute;
+    right: 1.5rem;
+    font-size: 0.8rem;
+    text-shadow: 0 0 5px var(--accent-primary);
+}
+
+/* Slider Glow Effect */
+input[type=range] {
+    -webkit-appearance: none;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.1);
+    /* Fallback/Base */
+    height: 6px;
+    border-radius: 3px;
+    cursor: pointer;
+    background-repeat: no-repeat;
+    /* Important for JS gradient */
+}
+
+input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    height: 16px;
+    width: 16px;
+    border-radius: 50%;
+    background: var(--accent-primary);
+    cursor: pointer;
+    margin-top: -5px;
+    /* Center thumb on track */
+    box-shadow: 0 0 10px var(--accent-primary), 0 0 20px var(--accent-primary);
+    transition: transform 0.1s;
+}
+
+input[type=range]::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+}
+
+input[type=range]::-webkit-slider-runnable-track {
+    width: 100%;
+    height: 6px;
+    cursor: pointer;
+    background: transparent;
+    /* Transparent to let JS gradient show */
+    border-radius: 3px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Firefox */
+input[type=range]::-moz-range-track {
+    width: 100%;
+    height: 6px;
+    cursor: pointer;
+    background: transparent;
+    border-radius: 3px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 /* Visualizer */
@@ -232,201 +333,6 @@ canvas {
 .wave-icon.inverted {
     transform: scaleY(-1);
     color: var(--accent-danger);
-}
-
-.plus-sign,
-.equals-sign {
-    font-size: 2rem;
-    font-weight: bold;
-    color: var(--text-secondary);
-}
-
-.power-btn {
-    background: #333;
-    color: white;
-    border: none;
-    padding: 1rem 2rem;
-    font-size: 1.2rem;
-    border-radius: 2rem;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    transition: all 0.3s ease;
-    border: 2px solid transparent;
-}
-
-.power-btn .icon {
-    font-size: 1.4rem;
-}
-
-.power-btn.active {
-    background: rgba(16, 185, 129, 0.2);
-    color: var(--accent-secondary);
-    border-color: var(--accent-secondary);
-    box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
-}
-
-.status-indicator {
-    font-weight: bold;
-    color: var(--accent-danger);
-    font-family: var(--font-mono);
-}
-
-.status-indicator.silence {
-    color: var(--accent-secondary);
-}
-
-/* Animations */
-@keyframes wave {
-    0% {
-        transform: translateY(0);
-    }
-
-    50% {
-        transform: translateY(-5px);
-    }
-
-    100% {
-        transform: translateY(0);
-    }
-}
-
-@keyframes wave-inverted {
-    0% {
-        transform: scaleY(-1) translateY(0);
-    }
-
-    50% {
-        transform: scaleY(-1) translateY(-5px);
-    }
-
-    100% {
-        transform: scaleY(-1) translateY(0);
-    }
-}
-
-.wave-icon.animating {
-    animation: wave 1s infinite ease-in-out;
-}
-
-.wave-icon.inverted.animating {
-    animation: wave-inverted 1s infinite ease-in-out;
-}
-
-.headphone-icon {
-    font-size: 3rem;
-    margin-top: -1rem;
-    margin-bottom: 0.5rem;
-    display: none;
-    /* Hidden by default, shown when ANC active maybe? or just always shown */
-    display: block;
-}
-
-button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    filter: grayscale(1);
-}
-
-/* Phase Selector */
-.control-panel.column {
-    flex-direction: column;
-    gap: 1.5rem;
-}
-
-.phase-selector {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    background: rgba(255, 255, 255, 0.05);
-    padding: 0.75rem 1.5rem;
-    border-radius: 0.5rem;
-}
-
-.radio-group {
-    display: flex;
-    gap: 1.5rem;
-}
-
-.radio-label {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    cursor: pointer;
-    color: var(--text-secondary);
-    transition: color 0.2s;
-}
-
-.radio-label:hover {
-    color: white;
-}
-
-.radio-label input[type="radio"] {
-    accent-color: var(--accent-primary);
-    width: 1.2rem;
-    height: 1.2rem;
-}
-
-.button-group {
-    display: flex;
-    gap: 1rem;
-    justify-content: center;
-}
-
-/* Visualizer Legend */
-.legend {
-    display: flex;
-    justify-content: center;
-    gap: 2rem;
-    margin-top: 0.5rem;
-    font-size: 0.9rem;
-    color: var(--text-secondary);
-}
-
-.legend-item {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    display: inline-block;
-}
-
-.dot.green {
-    background-color: rgb(0, 255, 0);
-    box-shadow: 0 0 5px rgb(0, 255, 0);
-}
-
-.dot.red {
-    background-color: rgb(255, 50, 50);
-    box-shadow: 0 0 5px rgb(255, 50, 50);
-}
-
-.dot.blue {
-    background-color: rgb(50, 150, 255);
-    box-shadow: 0 0 5px rgb(50, 150, 255);
-}
-
-/* Footer */
-footer {
-    text-align: center;
-    margin-top: 3rem;
-    padding-top: 2rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    color: var(--text-secondary);
-    font-size: 0.9rem;
-}
-
-.developer {
-    margin-bottom: 0.5rem;
-    font-size: 0.9rem;
-    color: var(--text-primary);
-    background: rgba(255, 255, 255, 0.05);
 }
 
 .plus-sign,
@@ -728,4 +634,203 @@ footer {
         padding: 2rem;
         width: 90%;
     }
+
+    .anc-pro-interface {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+}
+
+/* Pulsatile Neon Blue Text */
+.pulsate-blue {
+    color: #00f3ff;
+    text-shadow: 0 0 10px #00f3ff, 0 0 20px #00f3ff, 0 0 40px #00f3ff;
+    animation: pulsate 2s infinite alternate;
+}
+
+@keyframes pulsate {
+    0% {
+        text-shadow: 0 0 10px #00f3ff, 0 0 20px #00f3ff;
+        opacity: 0.8;
+    }
+
+    100% {
+        text-shadow: 0 0 20px #00f3ff, 0 0 40px #00f3ff, 0 0 60px #00f3ff;
+        opacity: 1;
+    }
+}
+
+/* Pro ANC Interface */
+.anc-pro-interface {
+    display: grid;
+    grid-template-columns: 1fr 2fr 1fr;
+    gap: 2rem;
+    align-items: center;
+    background: rgba(20, 22, 31, 0.8);
+    padding: 2rem;
+    border-radius: 1.5rem;
+    border: 1px solid rgba(0, 243, 255, 0.1);
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+    margin-bottom: 2rem;
+}
+
+.anc-card {
+    background: rgba(255, 255, 255, 0.03);
+    padding: 1.5rem;
+    border-radius: 1rem;
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.3s ease;
+}
+
+.anc-card:hover {
+    border-color: rgba(0, 243, 255, 0.3);
+    box-shadow: 0 0 20px rgba(0, 243, 255, 0.1);
+}
+
+.anc-center-panel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+/* Phase Knob (Styled Range Slider for now, simpler to implement robustly) */
+.phase-control-container {
+    width: 100%;
+    text-align: center;
+}
+
+.knob-wrapper {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    margin: 0 auto 1rem;
+    border-radius: 50%;
+    background: conic-gradient(from 180deg, var(--accent-primary) 0%, transparent 0%);
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.2);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.knob-inner {
+    width: 80%;
+    height: 80%;
+    background: var(--card-bg);
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    z-index: 2;
+    transition: transform 0.1s ease-out;
+    box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Knob Marker */
+.knob-inner::after {
+    content: '';
+    position: absolute;
+    top: 5px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 6px;
+    height: 15px;
+    background: #fff;
+    border-radius: 3px;
+    box-shadow: 0 0 10px #fff, 0 0 20px var(--accent-primary);
+}
+
+.knob-value {
+    font-family: var(--font-mono);
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--accent-primary);
+    transform: rotate(0deg);
+}
+
+/* Custom Range Slider for Phase - Inherits general slider styles for track */
+input[type=range].phase-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    background: transparent;
+}
+
+input[type=range].phase-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 20px;
+    width: 20px;
+    border-radius: 50%;
+    background: var(--accent-primary);
+    cursor: pointer;
+    margin-top: -7px;
+    /* Adjusted for new track height */
+    box-shadow: 0 0 10px var(--accent-primary), 0 0 20px var(--accent-primary);
+}
+
+/* Removed specific track override to allow general glow style to apply */
+
+/* Latency Toggle */
+.latency-control {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 0.5rem 1rem;
+    border-radius: 2rem;
+}
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 40px;
+    height: 20px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #333;
+    transition: .4s;
+    border-radius: 20px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 2px;
+    bottom: 2px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked+.slider {
+    background-color: var(--accent-danger);
+}
+
+input:checked+.slider:before {
+    transform: translateX(20px);
+}
+
+/* Specific fix for Right Panel (Result) to be horizontal */
+.anc-side-panel.result-panel {
+    flex-direction: row !important;
+    gap: 1.5rem;
 }

@@ -13,6 +13,8 @@ class AudioEngine {
         // State
         this.currentSourceType = 'noise'; // 'noise' or 'tone'
         this.currentFrequency = 1000;
+        this.latencyEnabled = false;
+        this.currentPhase = 180;
 
         // Nodes for Weighting Demo
         this.weightingInput = null;
@@ -49,15 +51,15 @@ class AudioEngine {
         // ANC Analysers
         this.analyserSource = this.ctx.createAnalyser();
         this.analyserSource.fftSize = 2048;
-        this.analyserSource.smoothingTimeConstant = 1;
+        this.analyserSource.smoothingTimeConstant = 0.85;
 
         this.analyserAntiNoise = this.ctx.createAnalyser();
         this.analyserAntiNoise.fftSize = 2048;
-        this.analyserAntiNoise.smoothingTimeConstant = 1;
+        this.analyserAntiNoise.smoothingTimeConstant = 0.85;
 
         this.analyserResult = this.ctx.createAnalyser();
         this.analyserResult.fftSize = 2048;
-        this.analyserResult.smoothingTimeConstant = 1;
+        this.analyserResult.smoothingTimeConstant = 0.85;
 
         // Create Pink Noise Buffer
         this.noiseBuffer = this.createPinkNoiseBuffer();
@@ -135,8 +137,6 @@ class AudioEngine {
 
     setSourceType(type) {
         this.currentSourceType = type;
-        // If playing (checked by UI), restart with new source
-        // But here we don't know if playing. The UI handles restart if needed.
     }
 
     setFrequency(freq) {
@@ -239,7 +239,9 @@ class AudioEngine {
         this.ancOriginalGain = this.ctx.createGain();
         this.ancInvertedGain = this.ctx.createGain();
         this.ancDelay = this.ctx.createDelay();
-        this.ancDelay.delayTime.value = 0; // Default 0 (Perfect)
+
+        // Initialize delay based on current settings
+        this.updateANCDelay();
 
         // Invert phase: Multiply by -1
         this.ancInvertedGain.gain.value = 0; // Start with ANC OFF
@@ -274,22 +276,33 @@ class AudioEngine {
     }
 
     setANCPhase(degrees) {
+        this.currentPhase = degrees;
+        this.updateANCDelay();
+    }
+
+    toggleLatency(enabled) {
+        this.latencyEnabled = enabled;
+        this.updateANCDelay();
+    }
+
+    updateANCDelay() {
         if (!this.ancDelay) return;
 
-        // 180 degrees is perfect inversion (already handled by gain -1).
-        // If we want 160 degrees relative to original, we need to offset the perfect inversion.
-        // Actually, gain -1 IS 180 degrees.
-        // To simulate 160 degrees, we need a 20 degree phase shift error.
-        // Phase shift depends on frequency, but for noise (broadband), a small delay creates a comb filter effect which ruins cancellation.
-        // Let's use a small delay to simulate "imperfect phase alignment".
+        // 180 is perfect cancellation (0 delay added to the inverted signal)
+        // Deviation from 180 adds delay, causing phase mismatch
+        const phaseError = Math.abs(180 - this.currentPhase);
 
-        if (degrees == 180) {
-            this.ancDelay.delayTime.linearRampToValueAtTime(0, this.ctx.currentTime + 0.1);
-        } else {
-            // Small delay to create phase mismatch
-            // 0.0005s (0.5ms) is significant enough to ruin cancellation for higher freqs
-            this.ancDelay.delayTime.linearRampToValueAtTime(0.0005, this.ctx.currentTime + 0.1);
+        // Map error to delay. 
+        // 180 deg error (0 or 360) should be significant.
+        // 1ms delay is roughly 180 deg shift at 500Hz.
+        // We'll use a mapping where 180 deg error = 2ms delay
+        let delayTime = (phaseError / 180) * 0.002;
+
+        if (this.latencyEnabled) {
+            delayTime += 0.05; // Add 50ms latency (very noticeable)
         }
+
+        this.ancDelay.delayTime.linearRampToValueAtTime(delayTime, this.ctx.currentTime + 0.1);
     }
 }
 
@@ -315,18 +328,27 @@ document.addEventListener('DOMContentLoaded', () => {
     const freqControlGroup = document.getElementById('freq-control-group');
     const freqSlider = document.getElementById('tone-freq');
     const freqDisplay = document.getElementById('freq-display');
-    const phaseRadios = document.querySelectorAll('input[name="phase"]');
     const antiNoiseDesc = document.getElementById('anti-noise-desc');
+
+    // Pro Controls
+    const phaseSlider = document.getElementById('phase-slider');
+    const phaseDisplay = document.getElementById('phase-display');
+    const latencyToggle = document.getElementById('latency-toggle');
 
     let isWeightingActive = true;
     let isPlaying = false;
 
     // Start Button (Enter Lab)
     startBtn.addEventListener('click', async () => {
-        await engine.init();
-        // Don't auto start audio, just hide overlay
-        overlay.classList.add('hidden');
-        drawLoop();
+        try {
+            await engine.init();
+            drawLoop();
+        } catch (e) {
+            console.error("Audio Init Failed:", e);
+            alert(`Audio initialization failed: ${e.message}\nThe app may not work correctly.`);
+        } finally {
+            overlay.classList.add('hidden');
+        }
     });
 
     // Play/Stop Button for Weighting Demo
@@ -496,29 +518,105 @@ document.addEventListener('DOMContentLoaded', () => {
             if (ancActive) {
                 ancBtn.classList.add('active');
                 ancBtn.innerHTML = `<span class="icon">⏻</span> Deactivate ANC`;
-                document.getElementById('anc-status').textContent = "SILENCE";
-                document.getElementById('anc-status').classList.add('silence');
+
+                // Trigger phase input event logic to set initial status correctly
+                const phase = phaseSlider ? phaseSlider.value : 180;
+                const diff = Math.abs(180 - phase);
+                const statusEl = document.getElementById('anc-status');
+
+                if (diff < 10) {
+                    statusEl.textContent = "SILENCE";
+                    statusEl.className = "status-indicator silence";
+                } else if (diff < 45) {
+                    statusEl.textContent = "REDUCED";
+                    statusEl.className = "status-indicator reduced";
+                    statusEl.style.color = "var(--accent-primary)";
+                } else {
+                    statusEl.textContent = "INTERFERENCE";
+                    statusEl.className = "status-indicator interference";
+                    statusEl.style.color = "var(--accent-danger)";
+                }
+
                 antiNoiseIcon.classList.add('animating');
             } else {
                 ancBtn.classList.remove('active');
                 ancBtn.innerHTML = `<span class="icon">⏻</span> Activate ANC`;
                 document.getElementById('anc-status').textContent = "NOISE";
-                document.getElementById('anc-status').classList.remove('silence');
+                document.getElementById('anc-status').className = "status-indicator";
+                document.getElementById('anc-status').style.color = ""; // Reset color
                 antiNoiseIcon.classList.remove('animating');
             }
         });
     }
 
-    // Phase Selection
-    phaseRadios.forEach(radio => {
-        radio.addEventListener('change', (e) => {
+    // Phase Slider
+    if (phaseSlider) {
+        phaseSlider.addEventListener('input', (e) => {
             const phase = e.target.value;
             engine.setANCPhase(phase);
+
+            // Update Display
+            if (phaseDisplay) {
+                phaseDisplay.textContent = `${phase}°`;
+            }
             if (antiNoiseDesc) {
                 antiNoiseDesc.textContent = `Inverted Phase (${phase}°)`;
             }
+
+            // Rotate Knob Visual
+            const knobInner = document.querySelector('.knob-inner');
+            const knobValue = document.querySelector('.knob-value');
+
+            if (knobInner) {
+                knobInner.style.transform = `rotate(${phase}deg)`;
+            }
+
+            // Counter-rotate text to keep it upright
+            if (knobValue) {
+                knobValue.style.transform = `rotate(-${phase}deg)`;
+            }
+
+            // Update Status Text based on phase
+            const statusEl = document.getElementById('anc-status');
+            if (statusEl && ancActive) {
+                const diff = Math.abs(180 - phase);
+                if (diff < 10) {
+                    statusEl.textContent = "SILENCE";
+                    statusEl.className = "status-indicator silence";
+                } else if (diff < 45) {
+                    statusEl.textContent = "REDUCED";
+                    statusEl.className = "status-indicator reduced"; // Need to add CSS for this
+                    statusEl.style.color = "var(--accent-primary)"; // Temporary inline or add to CSS
+                } else {
+                    statusEl.textContent = "INTERFERENCE";
+                    statusEl.className = "status-indicator interference"; // Need to add CSS for this
+                    statusEl.style.color = "var(--accent-danger)";
+                }
+            }
         });
+    }
+
+    // Latency Toggle
+    // Dynamic Slider Fill
+    function updateSliderFill(slider) {
+        if (!slider) return;
+        const val = (slider.value - slider.min) / (slider.max - slider.min) * 100;
+        slider.style.background = `linear-gradient(to right, var(--accent-primary) 0%, var(--accent-primary) ${val}%, rgba(255, 255, 255, 0.1) ${val}%, rgba(255, 255, 255, 0.1) 100%)`;
+    }
+
+    // Initialize and attach listeners
+    [freqSlider, volSlider, phaseSlider].forEach(slider => {
+        if (slider) {
+            updateSliderFill(slider);
+            slider.addEventListener('input', (e) => updateSliderFill(e.target));
+        }
     });
+
+    if (latencyToggle) {
+        latencyToggle.addEventListener('change', (e) => {
+            engine.toggleLatency(e.target.checked);
+        });
+    }
 
     function resetANCUI() {
         if (ancBtn) {
@@ -553,6 +651,23 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    let ancViewMode = 'waveform'; // 'waveform' or 'spectrum'
+
+    // --- Event Listeners ---
+    // --- Event Listeners ---
+    // startBtn listener is already defined above
+
+    // ... (Existing listeners) ...
+
+    const viewModeToggle = document.getElementById('view-mode-toggle');
+    if (viewModeToggle) {
+        viewModeToggle.addEventListener('change', (e) => {
+            ancViewMode = e.target.checked ? 'spectrum' : 'waveform';
+        });
+    }
+
+    // ... (Existing code) ...
+
     function drawLoop() {
         requestAnimationFrame(drawLoop);
 
@@ -560,17 +675,79 @@ document.addEventListener('DOMContentLoaded', () => {
             drawSpectrum(engine.analyser, weightingCtx, weightingCanvas.width, weightingCanvas.height);
             ancCtx.clearRect(0, 0, ancCanvas.width, ancCanvas.height);
         } else {
-            // Pass all 3 analysers to the oscilloscope
-            drawMultiOscilloscope(
-                engine.analyserSource,
-                engine.analyserAntiNoise,
-                engine.analyserResult,
-                ancCtx,
-                ancCanvas.width,
-                ancCanvas.height
-            );
+            if (ancViewMode === 'spectrum') {
+                drawMultiSpectrum(
+                    engine.analyserSource,
+                    engine.analyserAntiNoise,
+                    engine.analyserResult,
+                    ancCtx,
+                    ancCanvas.width,
+                    ancCanvas.height
+                );
+            } else {
+                drawMultiOscilloscope(
+                    engine.analyserSource,
+                    engine.analyserAntiNoise,
+                    engine.analyserResult,
+                    ancCtx,
+                    ancCanvas.width,
+                    ancCanvas.height
+                );
+            }
             weightingCtx.clearRect(0, 0, weightingCanvas.width, weightingCanvas.height);
         }
+    }
+
+    function drawMultiSpectrum(analyserSrc, analyserAnti, analyserRes, ctx, width, height) {
+        if (!analyserSrc || !analyserAnti || !analyserRes) return;
+
+        ctx.fillStyle = 'rgb(0, 0, 0)';
+        ctx.fillRect(0, 0, width, height);
+
+        const bufferLength = analyserSrc.frequencyBinCount;
+        const dataSrc = new Uint8Array(bufferLength);
+        const dataAnti = new Uint8Array(bufferLength);
+        const dataRes = new Uint8Array(bufferLength);
+
+        analyserSrc.getByteFrequencyData(dataSrc);
+        analyserAnti.getByteFrequencyData(dataAnti);
+        analyserRes.getByteFrequencyData(dataRes);
+
+        // Logarithmic Scale Parameters
+        const minFreq = 20;
+        const maxFreq = 20000;
+        const logMin = Math.log10(minFreq);
+        const logMax = Math.log10(maxFreq);
+        const scale = width / (logMax - logMin);
+        const barWidth = 3;
+
+        ctx.globalCompositeOperation = 'screen'; // Blend colors
+
+        for (let x = 0; x < width; x += 2) {
+            const freq = Math.pow(10, (x / scale) + logMin);
+            const binIndex = Math.floor(freq * (2 * bufferLength) / 44100);
+
+            if (binIndex >= 0 && binIndex < bufferLength) {
+                // Draw Source (Green)
+                const valSrc = dataSrc[binIndex];
+                const hSrc = (valSrc / 255) * height;
+                ctx.fillStyle = `rgba(0, 255, 0, 0.5)`;
+                ctx.fillRect(x, height - hSrc, barWidth, hSrc);
+
+                // Draw Anti-Noise (Red)
+                const valAnti = dataAnti[binIndex];
+                const hAnti = (valAnti / 255) * height;
+                ctx.fillStyle = `rgba(255, 0, 0, 0.5)`;
+                ctx.fillRect(x, height - hAnti, barWidth, hAnti);
+
+                // Draw Result (Blue)
+                const valRes = dataRes[binIndex];
+                const hRes = (valRes / 255) * height;
+                ctx.fillStyle = `rgba(0, 100, 255, 0.8)`; // Higher opacity for result
+                ctx.fillRect(x, height - hRes, barWidth, hRes);
+            }
+        }
+        ctx.globalCompositeOperation = 'source-over'; // Reset
     }
 
     function drawSpectrum(analyser, ctx, width, height) {
@@ -582,21 +759,31 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.fillStyle = 'rgb(0, 0, 0)';
         ctx.fillRect(0, 0, width, height);
 
-        const barWidth = (width / bufferLength) * 2.5;
-        let barHeight;
-        let x = 0;
+        // Logarithmic Scale Parameters
+        const minFreq = 20;
+        const maxFreq = 20000;
+        const sampleRate = 44100;
+        const logMin = Math.log10(minFreq);
+        const logMax = Math.log10(maxFreq);
+        const scale = width / (logMax - logMin);
 
-        for (let i = 0; i < bufferLength; i++) {
-            barHeight = dataArray[i] / 255 * height;
+        const barWidth = 3;
 
-            const r = barHeight + (25 * (i / bufferLength));
-            const g = 250 * (i / bufferLength);
-            const b = 50;
+        for (let x = 0; x < width; x += 2) {
+            const freq = Math.pow(10, (x / scale) + logMin);
+            const binIndex = Math.floor(freq * (2 * bufferLength) / sampleRate);
 
-            ctx.fillStyle = `rgb(${r},${g},${b})`;
-            ctx.fillRect(x, height - barHeight, barWidth, barHeight);
+            if (binIndex >= 0 && binIndex < bufferLength) {
+                const value = dataArray[binIndex];
+                const barHeight = (value / 255) * height;
 
-            x += barWidth + 1;
+                const r = barHeight + (25 * (x / width));
+                const g = 250 * (x / width);
+                const b = 50;
+
+                ctx.fillStyle = `rgb(${r},${g},${b})`;
+                ctx.fillRect(x, height - barHeight, barWidth, barHeight);
+            }
         }
     }
 
@@ -638,12 +825,24 @@ document.addEventListener('DOMContentLoaded', () => {
         // Use globalAlpha to blend them if they overlap
         ctx.globalCompositeOperation = 'screen';
 
+        // Source - Green Glow
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = 'rgb(0, 255, 0)';
         drawLine(analyserSrc, 'rgb(0, 255, 0)');
+
+        // Anti-Noise - Red Glow
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = 'rgb(255, 50, 50)';
         drawLine(analyserAnti, 'rgb(255, 50, 50)');
 
-        ctx.lineWidth = 3; // Make result slightly thicker
+        // Result - Blue Glow (Thicker)
+        ctx.lineWidth = 3;
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = 'rgb(50, 150, 255)';
         drawLine(analyserRes, 'rgb(50, 150, 255)');
 
+        // Reset shadow
+        ctx.shadowBlur = 0;
         ctx.globalCompositeOperation = 'source-over';
     }
 });
